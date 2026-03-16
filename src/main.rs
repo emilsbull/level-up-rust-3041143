@@ -1,11 +1,15 @@
 fn sum_with_missing(numbers: Vec<Option<i32>>) -> i32 {
-    todo!();
+    // numbers.into_iter().filter_map(|x| x).sum()
+    let mut val = 0;
+    for number in numbers {
+        val += number.unwrap_or_default();
+    }
+    val
 }
 
 fn main() {
     println!("");
 }
-
 
 #[test]
 fn empty() {
