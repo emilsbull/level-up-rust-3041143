@@ -22,9 +22,7 @@ struct Hand {
 
 impl Hand {
     fn new() -> Self {
-        Hand {
-            cards: vec![],
-        }
+        Hand { cards: vec![] }
     }
 
     fn add(&mut self, card: Card) {
@@ -32,8 +30,34 @@ impl Hand {
     }
 
     fn value(&self) -> usize {
-        // TODO: implement this method
-        0 
+        let mut havs_ace = 0;
+        let mut total = 0;
+
+        for card in &self.cards {
+            match card {
+                Card::Ace => havs_ace += 1,
+                Card::Two => total += 2,
+                Card::Three => total += 3,
+                Card::Four => total += 4,
+                Card::Five => total += 5,
+                Card::Six => total += 6,
+                Card::Seven => total += 7,
+                Card::Eight => total += 8,
+                Card::Nine => total += 9,
+                Card::Jack | Card::Queen | Card::King => total += 10,
+            }
+        }
+
+        while havs_ace > 0 {
+            if total + 11 <= 21 {
+                total += 11;
+            } else {
+                total += 1;
+            }
+            havs_ace -= 1;
+        }
+
+        total
     }
 
     fn is_loosing_hand(&self) -> bool {
@@ -46,7 +70,6 @@ fn main() {
     hand.add(Card::King);
     hand.add(Card::Ace);
 }
-
 
 #[test]
 fn empty_hand() {
@@ -70,7 +93,7 @@ fn risky_hand() {
     hand.add(Card::King);
     hand.add(Card::Queen);
     hand.add(Card::Ace);
-    
+
     assert_eq!(hand.value(), 21);
 }
 
@@ -80,7 +103,7 @@ fn oops() {
     hand.add(Card::King);
     hand.add(Card::Seven);
     hand.add(Card::Five);
-    
+
     assert!(hand.is_loosing_hand());
     assert_eq!(hand.value(), 22);
 }
