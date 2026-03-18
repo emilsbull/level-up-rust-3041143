@@ -1,15 +1,57 @@
 use std::str::FromStr;
 
+#[derive(Debug)]
 struct Isbn {
     raw: String,
     digits: Vec<u8>,
 }
+#[derive(Debug)]
+enum IsbnParseError {
+    TooShort,
+    TooLong,
+    InvalidCharacter(usize, char),
+    FailedChecksum,
+}
 
 impl FromStr for Isbn {
-    type Err = (); // TODO: replace with appropriate type
+    type Err = IsbnParseError; // TODO: replace with appropriate type
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!();        
+        // let digits = s
+        //     .chars()
+        //     .filter(|c| match c {
+        //         '0'..='9' => true,
+        //         '-' => false,
+        //         _ => false,
+        //     })
+        //     .map(|c| c.to_digit(10).unwrap() as u8)
+        //     .collect::<Vec<u8>>();
+
+        let mut digits = vec![];
+
+        for (i, c) in s.char_indices() {
+            match c {
+                '0'..='9' => digits.push(c.to_digit(10).unwrap() as u8),
+                '-' => continue,
+                _ => return Err(IsbnParseError::InvalidCharacter(i, c)),
+            }
+        }
+
+        if digits.len() < 13 {
+            return Err(IsbnParseError::TooShort);
+        }
+        if digits.len() > 13 {
+            return Err(IsbnParseError::TooLong);
+        }
+
+        if digits[12] != calculate_check_digit(&digits) {
+            return Err(IsbnParseError::FailedChecksum);
+        }
+
+        Ok(Isbn {
+            raw: s.to_string(),
+            digits,
+        })
     }
 }
 
@@ -21,7 +63,21 @@ impl std::fmt::Display for Isbn {
 
 // https://en.wikipedia.org/wiki/International_Standard_Book_Number#ISBN-13_check_digit_calculation
 fn calculate_check_digit(digits: &[u8]) -> u8 {
-    todo!()
+    const WEIGHTS: [u8; 12] = [1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3];
+
+    let weights_applied: u32 = digits
+        .iter()
+        .zip(WEIGHTS.iter())
+        .map(|(&x, &y)| x * y)
+        .map(|x| x as u32)
+        .sum();
+
+    let check_digit = 10 - (weights_applied % 10);
+
+    match check_digit {
+        10 => 0_u8,
+        m => m as u8,
+    }
 }
 
 fn main() {
@@ -47,4 +103,10 @@ fn can_correctly_calculate_check_digits() {
 #[test]
 fn rust_in_action() {
     let _: Isbn = "978-3-16-148410-0".parse().unwrap();
+}
+
+#[test]
+fn invalid_character() {
+    let err = "978-3-16-148410-X".parse::<Isbn>().unwrap_err();
+    assert!(matches!(err, IsbnParseError::InvalidCharacter(16, 'X')));
 }
