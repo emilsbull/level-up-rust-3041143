@@ -3,7 +3,7 @@ mod run_length_encoding {
         let mut count = 0;
         let mut previous = None;
         let mut encoded = String::new();
-        let mut chars = text.chars();
+        let chars = text.chars();
 
         for c in chars {
             if Some(c) == previous && count < 9 {
@@ -37,10 +37,10 @@ mod run_length_encoding {
         while let Some(c) = chars.next() {
             if length_first {
                 let mut count_str = String::new();
-                while c.is_digit(10) {
+                while c.is_ascii_digit() {
                     count_str.push(c);
                     if let Some(next) = chars.peek() {
-                        if next.is_digit(10) {
+                        if next.is_ascii_digit() {
                             chars.next();
                         } else {
                             break;
@@ -57,7 +57,7 @@ mod run_length_encoding {
                 let char_to_repeat = c;
                 let mut count_str = String::new();
                 while let Some(next) = chars.peek() {
-                    if next.is_digit(10) {
+                    if next.is_ascii_digit() {
                         count_str.push(*next);
                         chars.next();
                     } else {
@@ -73,7 +73,12 @@ mod run_length_encoding {
 }
 
 fn main() {
-    //
+    use run_length_encoding::*;
+    let input = "AAAAA AAAAAAAAAA AAAAAAAAAAAAAAAAAAAA";
+    println!("{}", encode(input, true));
+    println!("{}", decode(&encode(input, true), true));
+    println!("{}", encode(input, false));
+    println!("{}", decode(&encode(input, false), false));
 }
 
 #[test]
